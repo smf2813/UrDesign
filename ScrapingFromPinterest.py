@@ -22,7 +22,7 @@ driver = webdriver.Chrome(service=service, options=options)
 url = "https://www.pinterest.com/search/pins/?q=antique%20furniture%20table"
 driver.get(url)
 time.sleep(3)  # המתנה לטעינת הדף
-
+j
 # יצירת תיקייה לשמירת התמונות
 os.makedirs("images", exist_ok=True)
 
