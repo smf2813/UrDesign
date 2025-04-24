@@ -1,53 +1,81 @@
 ﻿import os
-import cv2
-import torch
-import sqlite3
 import shutil
 from ultralytics import YOLO
 from PIL import Image
 
-# הגדרות ראשוניות
-CATEGORY = "chair"  # הקטגוריה שברצונך לסנן
-STYLE = "pop art"   # הסגנון הספציפי שברצונך לבדוק
+# ================= הגדרות =================
+CATEGORY = "chair"  # קטגוריה לסינון (למשל: chair, table, lamp)
+YOLO_MODEL_PATH = "yolov8l-oiv7.pt"  # מודל YOLOv8 שאומן על Open Images V7
 
-data_dir = os.path.join("data", "images", CATEGORY, STYLE)
+# ================= נתיב תיקייה =================
+data_dir = r"C:\Users\sharon\Desktop\ScrapingFromPinterest\ScrapingFromPinterest\data\images\chair\pop art"
 rejected_dir = os.path.join(data_dir, "rejected")
+invalid_format_dir = os.path.join(rejected_dir, "invalid_format")
+processing_error_dir = os.path.join(rejected_dir, "processing_error")
 os.makedirs(rejected_dir, exist_ok=True)
+os.makedirs(invalid_format_dir, exist_ok=True)
+os.makedirs(processing_error_dir, exist_ok=True)
 
-# טען את YOLO
-model = YOLO("yolo11n.pt")  # או כל מודל אחר שלך
+# ================= טעינת YOLO =================
+yolo_model = YOLO(YOLO_MODEL_PATH)
 
-# 🔍 הצגת הקטגוריות ש-YOLO מזהה
-print("📋 YOLO מזהה את הקטגוריות הבאות:")
-print(model.names)
+# ================= אתחול מונים =================
+total = 0
+saved = 0
+rejected = 0
+invalid_format = 0
+processing_error = 0
 
-# טען את מסד הנתונים
-conn = sqlite3.connect("data/products.db")
-cursor = conn.cursor()
+# ================= הרצת YOLO =================
+for filename in os.listdir(data_dir):
+    if not filename.endswith(".jpg"):
+        continue
 
-# השג את כל התמונות של הקטגוריה והסגנון הנוכחיים
-cursor.execute("SELECT id, local_path FROM products WHERE category = ? AND style = ?", (CATEGORY, STYLE))
-images = cursor.fetchall()
+    path = os.path.join(data_dir, filename)
+    total += 1
 
-# סריקה ומיון
-for img_id, path in images:
+    # בדיקת תקינות תמונה לפני עיבוד
     try:
-        results = model(path)
-        names = results[0].names
-        classes = [names[int(cls)] for cls in results[0].boxes.cls]
-
-        # אם הקטגוריה לא זוהתה - מחק מהמסד והעבר לתיקיית rejected
-        if CATEGORY.lower() not in [c.lower() for c in classes]:
-            print(f"🛑 תמונה לא מתאימה: {path} (זוהו: {classes})")
-            cursor.execute("DELETE FROM products WHERE id = ?", (img_id,))
-            conn.commit()
-            shutil.move(path, os.path.join(rejected_dir, os.path.basename(path)))
-        else:
-            print(f"✅ תמונה מתאימה: {path} (זוהו: {classes})")
+        with Image.open(path) as img:
+            img.verify()
     except Exception as e:
-        print(f"⚠️ שגיאה בעיבוד {path}: {e}")
+        print(f"⚠️ קובץ פגום או לא נתמך: {filename} ({e})")
+        shutil.move(path, os.path.join(invalid_format_dir, filename))
+        invalid_format += 1
+        continue
 
-conn.close()
-print("🎯 סינון YOLO הסתיים.")
+    try:
+        # בדיקת YOLO לקטגוריה
+        results = yolo_model(path)
+        result = results[0]
+        boxes = result.boxes
+        names = yolo_model.names
 
+        if boxes is None or len(boxes) == 0:
+            labels = []
+        else:
+            labels = [names[int(cls)] for cls in boxes.cls]
 
+        category_ok = CATEGORY in labels
+
+        # סינון לפי YOLO בלבד
+        if category_ok:
+            print(f"🟢 נשמר: {path} (זוהו: {labels})")
+            saved += 1
+        else:
+            print(f"🔴 נדחה (YOLO): {path} (זוהו: {labels})")
+            shutil.move(path, os.path.join(rejected_dir, filename))
+            rejected += 1
+
+    except Exception as e:
+        print(f"⚠️ שגיאה בעיבוד {filename}: {e}")
+        shutil.move(path, os.path.join(processing_error_dir, filename))
+        processing_error += 1
+
+# ================= סיכום =================
+print("\n========= סיכום =========")
+print(f"סה\"כ תמונות: {total}")
+print(f"✅ נשמרו: {saved}")
+print(f"❌ נדחו: {rejected}")
+print(f"⚠️ קבצים פגומים: {invalid_format}")
+print(f"⚠️ שגיאות עיבוד: {processing_error}")
