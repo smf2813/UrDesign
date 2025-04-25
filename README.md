@@ -1,5 +1,3 @@
----
-
 # 🔎 FurnitureMatch – AI-Powered Visual Search for Furniture
 
 **FurnitureMatch** is a visual search app where users upload a photo of a furniture item, and the system returns the top 5 most visually similar purchasable items scraped from Pinterest. It combines machine learning, computer vision, and fast similarity search to deliver accurate, aesthetic matches.
