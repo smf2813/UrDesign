@@ -20,9 +20,6 @@
 - ⚡ Searches Pinterest product embeddings with FAISS  
 - 🖼 Returns top 5 visually similar matches  
 
-## 🖼 Demo
-
-> _(Add GIF or screenshots showing the upload and returned similar items)_
 
 ## 🔄 Workflow
 
@@ -35,31 +32,13 @@
 
 ## 📦 Installation
 
-```bash
-# Clone the repo
-git clone https://github.com/your-username/furniturematch.git
-cd furniturematch
-
-# Backend Setup
-cd backend
-pip install -r requirements.txt
-python main.py
-
-# Frontend Setup
-cd ../frontend
-# (Add relevant native setup instructions)
-```
 
 ## 🧪 Example
 
-Upload image: `sofa.jpg` → Returns 5 visually similar sofas scraped from Pinterest.
 
 ## 🛤 Future Enhancements
 
-- Add category filters (chairs, tables, sofas, etc.)  
-- Multi-item detection in a single photo  
-- User accounts and favorites  
-- Integration with online stores (e.g. Amazon, Etsy)
+
 
 
 
