@@ -61,12 +61,6 @@ Upload image: `sofa.jpg` → Returns 5 visually similar sofas scraped from Pinte
 - User accounts and favorites  
 - Integration with online stores (e.g. Amazon, Etsy)
 
-## 🤝 Contributing
 
-Open an issue or submit a PR if you'd like to improve the app or suggest features.
 
-## 📄 License
 
-MIT License
-
----
