@@ -16,7 +16,7 @@ image = cv2.imread(image_path)
 # Run YOLO
 results = model_yolo(image)
 
-TARGET_CLASSES = ["chair", "couch", "sofa", "table", "bed", "cabinet", "desk", "dresser", "armchair"]
+TARGET_CLASSES = ["chair", "table"]
 
 for result in results:
     for box in result.boxes:
