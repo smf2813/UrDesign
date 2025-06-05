@@ -2,39 +2,128 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FurnitureMatch - Upload</title>
+  <title>FurnitureMatch – Upload</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 50px auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f2f2f2, #f9f9f9);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
     }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(5px);
+      padding: 2rem 3rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      max-width: 960px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      color: #333;
+    }
+
     input[type="file"] {
-      margin-bottom: 20px;
+      margin-bottom: 1rem;
+      font-size: 1rem;
     }
-    #results {
-      margin-top: 30px;
+
+    button {
+      padding: 0.7rem 1.4rem;
+      font-size: 1rem;
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.3s ease;
     }
+
+    button:hover {
+      background-color: #005fa3;
+    }
+
     img.preview {
       max-width: 100%;
       height: auto;
-      margin-top: 10px;
+      margin-top: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .results {
+      margin-top: 2rem;
+    }
+
+    .label-title {
+      text-transform: capitalize;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: #444;
+      margin: 2.5rem 0 1rem;
+      text-align: left;
+    }
+
+    .match-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1.2rem;
+      padding: 0 0.5rem;
+    }
+
+    .match-grid img {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .match-grid img:hover {
+      transform: scale(1.05);
+    }
+
+    .error {
+      color: #c00;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 1.2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .match-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
     }
   </style>
 </head>
 <body>
-  <h2>FurnitureMatch - Upload Image</h2>
-  <form id="upload-form">
-    <input type="file" id="image" name="file" accept="image/*" required>
-    <br>
-    <button type="submit">Find Matches</button>
-  </form>
-  <img id="preview" class="preview" style="display:none">
-  <div id="results"></div>
+  <div class="container">
+    <h2>FurnitureMatch - Upload Image</h2>
+    <form id="upload-form">
+      <input type="file" id="image" name="file" accept="image/*" required>
+      <br>
+      <button type="submit">Find Matches</button>
+    </form>
+    <img id="preview" class="preview" style="display:none">
+    <div id="results" class="results"></div>
+  </div>
 
   <script>
     const form = document.getElementById("upload-form");
@@ -52,7 +141,6 @@
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const file = imageInput.files[0];
       const formData = new FormData();
       formData.append("file", file);
@@ -64,28 +152,35 @@
           method: "POST",
           body: formData
         });
-        const data = await res.json();
 
+        const data = await res.json();
         resultsDiv.innerHTML = "";
+
         if (data.status === "success") {
-          data.results.forEach(result => {
-            const group = document.createElement("div");
-            group.innerHTML = `<h4>${result.label}</h4>`;
-            result.matches.forEach(match => {
+          data.results.forEach(group => {
+            const title = document.createElement("div");
+            title.classList.add("label-title");
+            title.textContent = group.label;
+            resultsDiv.appendChild(title);
+
+            const grid = document.createElement("div");
+            grid.classList.add("match-grid");
+
+            group.matches.forEach(match => {
               const img = document.createElement("img");
               img.src = match.image_path;
-              img.style.maxWidth = "100px";
-              img.style.margin = "5px";
-              group.appendChild(img);
+              grid.appendChild(img);
             });
-            resultsDiv.appendChild(group);
+
+            resultsDiv.appendChild(grid);
           });
         } else {
-          resultsDiv.innerHTML = `<p>${data.status}</p>`;
+          resultsDiv.innerHTML = `<p class="error">${data.status}</p>`;
         }
+
       } catch (err) {
         console.error(err);
-        resultsDiv.innerHTML = "<p>Error uploading image or fetching results.</p>";
+        resultsDiv.innerHTML = `<p class="error">Error uploading image or fetching results.</p>`;
       }
     });
   </script>

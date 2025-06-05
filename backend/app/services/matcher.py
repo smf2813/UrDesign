@@ -1,6 +1,8 @@
 # File: app/services/matcher.py
 
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Fix for OpenMP runtime conflict
+
 import shutil
 import uuid
 import torch
